@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test de Temperamentos Familiares</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --san: #C9614A; --col: #5B8C5A; --mel: #4A6C8C; --fle: #C49A2E;
+    --bg: #FAF7F2; --ink: #1C1C1C; --muted: #7A7065; --card: #FFFFFF; --border: #E8E0D5;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(250,247,242,0.96); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.85rem 1.5rem; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .nav-brand { font-family: 'Playfair Display', serif; font-size: 1rem; white-space: nowrap; }
+  .nav-tabs { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+  .nav-tab {
+    padding: 0.38rem 0.9rem; border-radius: 99px; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+    cursor: pointer; transition: all 0.2s; background: transparent; color: var(--muted); font-weight: 500;
+  }
+  .nav-tab.active { background: var(--ink); color: white; }
+  .nav-tab:hover:not(.active) { background: var(--border); color: var(--ink); }
+  .nav-reset-btn {
+    font-size: 0.72rem; color: var(--muted); background: none; border: 1px solid var(--border);
+    border-radius: 99px; padding: 0.3rem 0.8rem; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .nav-reset-btn:hover { border-color: #C9614A; color: #C9614A; }
+  .save-indicator { font-size: 0.7rem; color: var(--muted); opacity: 0; transition: opacity 0.5s; white-space: nowrap; }
+  .save-indicator.show { opacity: 1; }
+
+  /* ── RESET MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 500; display: none; align-items: center; justify-content: center; padding: 1.5rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: white; border-radius: 16px; padding: 1.8rem 1.5rem;
+    max-width: 340px; width: 100%; box-shadow: 0 16px 48px rgba(0,0,0,0.2); text-align: center;
+  }
+  .modal-icon { font-size: 2rem; margin-bottom: 0.6rem; }
+  .modal-box h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .modal-box p { font-size: 0.83rem; color: var(--muted); margin-bottom: 1.4rem; line-height: 1.55; }
+  .modal-actions { display: flex; gap: 0.6rem; justify-content: center; }
+  .modal-cancel {
+    padding: 0.55rem 1.2rem; border-radius: 99px; border: 1.5px solid var(--border);
+    background: none; font-family: 'DM Sans', sans-serif; font-size: 0.84rem;
+    cursor: pointer; font-weight: 500; color: var(--muted); transition: all 0.2s;
+  }
+  .modal-cancel:hover { border-color: var(--ink); color: var(--ink); }
+  .modal-confirm {
+    padding: 0.55rem 1.2rem; border-radius: 99px; border: none;
+    background: #C9614A; color: white; font-family: 'DM Sans', sans-serif;
+    font-size: 0.84rem; cursor: pointer; font-weight: 500; transition: opacity 0.2s;
+  }
+  .modal-confirm:hover { opacity: 0.88; }
+
+  /* ── SECTIONS ── */
+  section { display: none; padding: 2rem 1.5rem; max-width: 860px; margin: 0 auto; }
+  section.active { display: block; }
+
+  /* ── SETUP SCREEN ── */
+  #setup {
+    display: none; min-height: 100vh;
+    background: var(--bg);
+  }
+  #setup.active { display: flex; align-items: flex-start; justify-content: center; padding: 3rem 1.5rem; }
+  .setup-box {
+    background: white; border: 1.5px solid var(--border); border-radius: 20px;
+    padding: 2.5rem 2rem; max-width: 520px; width: 100%;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+  }
+  .setup-logo { font-size: 2.4rem; margin-bottom: 1rem; text-align: center; }
+  .setup-box h1 {
+    font-family: 'Playfair Display', serif; font-size: 1.6rem;
+    text-align: center; margin-bottom: 0.4rem;
+  }
+  .setup-box .subtitle {
+    font-size: 0.85rem; color: var(--muted); text-align: center;
+    margin-bottom: 2rem; line-height: 1.5;
+  }
+  .setup-members { display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.5rem; }
+  .member-row {
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .member-emoji-picker {
+    font-size: 1.3rem; background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 10px; width: 44px; height: 44px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+    position: relative; user-select: none;
+  }
+  .member-emoji-picker:hover { border-color: var(--ink); }
+  .emoji-dropdown {
+    position: absolute; top: calc(100% + 4px); left: 0; z-index: 200;
+    background: white; border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 0.5rem; display: none; grid-template-columns: repeat(5,1fr); gap: 2px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12); min-width: 180px;
+  }
+  .emoji-dropdown.open { display: grid; }
+  .emoji-opt {
+    font-size: 1.2rem; padding: 0.3rem; border-radius: 6px; cursor: pointer;
+    text-align: center; transition: background 0.1s;
+  }
+  .emoji-opt:hover { background: var(--bg); }
+  .member-input {
+    flex: 1; padding: 0.6rem 0.9rem; border-radius: 10px;
+    border: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem; outline: none; transition: border-color 0.2s; background: var(--bg);
+  }
+  .member-input:focus { border-color: var(--ink); background: white; }
+  .member-input::placeholder { color: #B8B0A8; }
+  .remove-member {
+    width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border);
+    background: none; cursor: pointer; color: var(--muted); font-size: 1rem;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .remove-member:hover { border-color: #C9614A; color: #C9614A; }
+  .add-member-btn {
+    width: 100%; padding: 0.6rem; border-radius: 10px;
+    border: 1.5px dashed var(--border); background: none;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--muted);
+    cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem;
+  }
+  .add-member-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .setup-start-btn {
+    width: 100%; padding: 0.85rem; border-radius: 12px; border: none;
+    background: var(--ink); color: white; font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem; font-weight: 500; cursor: pointer; transition: all 0.2s;
+  }
+  .setup-start-btn:hover { opacity: 0.88; }
+  .setup-start-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .setup-note { font-size: 0.72rem; color: var(--muted); text-align: center; margin-top: 0.9rem; line-height: 1.5; }
+
+  /* ── TYPOGRAPHY ── */
+  .section-eyebrow { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+  h1 { font-family: 'Playfair Display', serif; font-size: 2rem; line-height: 1.2; margin-bottom: 0.5rem; }
+  h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 0.8rem; }
+  h3 { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.4rem; }
+  p { font-size: 0.88rem; line-height: 1.65; color: #3D3730; }
+  .lead { font-size: 0.95rem; color: var(--muted); margin-bottom: 2rem; line-height: 1.6; }
+
+  /* ── TEMP CARDS ── */
+  .temp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 2rem 0; }
+  @media(max-width:600px){ .temp-grid { grid-template-columns: 1fr; } }
+  .temp-card { border-radius: 16px; padding: 1.5rem; border: 1.5px solid transparent; transition: transform 0.2s, box-shadow 0.2s; }
+  .temp-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
+  .temp-card.san { background: #FDF3F1; border-color: #E8BDB5; }
+  .temp-card.col { background: #F1F7F1; border-color: #B5CEB5; }
+  .temp-card.mel { background: #F0F4F8; border-color: #B5C8D8; }
+  .temp-card.fle { background: #FDF8EE; border-color: #E0CFA0; }
+  .temp-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+  .temp-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 0.15rem; }
+  .temp-epithet { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
+  .temp-desc { font-size: 0.82rem; line-height: 1.6; margin-bottom: 0.9rem; }
+  .trait-list { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .trait { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 500; }
+  .san .trait { background: #F5D5CF; color: #8B3A2E; }
+  .col .trait { background: #CDDEAD; color: #2E5C2E; }
+  .mel .trait { background: #BFCFDF; color: #1E3C5C; }
+  .fle .trait { background: #EEE0B0; color: #6B5010; }
+  .strengths-weaknesses { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem; }
+  .sw-block { font-size: 0.75rem; line-height: 1.5; }
+  .sw-label { font-weight: 500; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.2rem; }
+
+  .divider { height: 1px; background: var(--border); margin: 2rem 0; }
+  .intro-card { background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 1.2rem; margin-bottom: 1rem; }
+
+  /* ── TEST ── */
+  .person-selector { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .person-btn {
+    padding: 0.45rem 1rem; border-radius: 99px; border: 1.5px solid var(--border); background: white;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; font-weight: 500;
+    position: relative;
+  }
+  .person-btn.active { background: var(--ink); color: white; border-color: var(--ink); }
+  .person-btn .done-dot {
+    position: absolute; top: -3px; right: -3px; width: 10px; height: 10px;
+    border-radius: 50%; background: #5B8C5A; border: 1.5px solid var(--bg); display: none;
+  }
+  .person-btn.done .done-dot { display: block; }
+  .question-counter { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 99px; margin-bottom: 1.5rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--ink); border-radius: 99px; transition: width 0.4s ease; }
+  .question-text { font-family: 'Playfair Display', serif; font-size: 1.05rem; margin-bottom: 1.2rem; line-height: 1.4; }
+  .options { display: flex; flex-direction: column; gap: 0.6rem; }
+  .option-btn {
+    padding: 0.85rem 1.2rem; border-radius: 12px; border: 1.5px solid var(--border); background: white;
+    font-family: 'DM Sans', sans-serif; font-size: 0.84rem; cursor: pointer; transition: all 0.2s; text-align: left; line-height: 1.45;
+  }
+  .option-btn:hover { border-color: #999; background: #F8F6F3; }
+  .option-btn.selected { border-color: var(--ink); background: var(--ink); color: white; }
+  .test-nav { display: flex; justify-content: space-between; margin-top: 1.5rem; align-items: center; }
+  .btn { padding: 0.6rem 1.4rem; border-radius: 99px; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.84rem; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+  .btn-primary { background: var(--ink); color: white; }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* ── RESULT ── */
+  .result-badges { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 1rem 0 1.5rem; }
+  .result-badge { display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem; border-radius: 10px; font-size: 0.8rem; font-weight: 500; }
+  .result-badge.san { background: #FDF3F1; border: 1.5px solid #E8BDB5; color: #8B3A2E; }
+  .result-badge.col { background: #F1F7F1; border: 1.5px solid #B5CEB5; color: #2E5C2E; }
+  .result-badge.mel { background: #F0F4F8; border: 1.5px solid #B5C8D8; color: #1E3C5C; }
+  .result-badge.fle { background: #FDF8EE; border: 1.5px solid #E0CFA0; color: #6B5010; }
+  .score-breakdown { margin: 0.75rem 0 1.2rem; }
+  .score-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; font-size: 0.78rem; }
+  .score-label { width: 100px; color: var(--muted); flex-shrink: 0; }
+  .score-track { flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .score-bar { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+  .score-val { width: 28px; text-align: right; font-weight: 500; }
+  .test-complete { text-align: center; padding: 0.75rem 0 1.25rem; }
+  .test-complete .emoji { font-size: 2.2rem; margin-bottom: 0.4rem; }
+  .test-complete h3 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 0.3rem; }
+
+  /* ── RECS ── */
+  .rec-card { background: white; border: 1.5px solid var(--border); border-radius: 16px; padding: 1.4rem; margin-bottom: 1rem; }
+  .rec-card-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin-bottom: 0.4rem; }
+  .rec-card h3 { font-family: 'Playfair Display', serif; font-size: 1rem; margin-bottom: 0.6rem; }
+  .rec-card .intro-text { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.9rem; line-height: 1.55; }
+  .rec-subsection { margin-bottom: 1rem; }
+  .rec-subsection:last-child { margin-bottom: 0; }
+  .rec-sub-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.2rem 0.6rem; border-radius: 99px; display: inline-block; margin-bottom: 0.5rem; }
+  .sub-san { background: #F5D5CF; color: #8B3A2E; }
+  .sub-col { background: #CDDEAD; color: #2E5C2E; }
+  .sub-mel { background: #BFCFDF; color: #1E3C5C; }
+  .sub-fle { background: #EEE0B0; color: #6B5010; }
+  .sub-mix { background: #EDE8E0; color: #5A4F40; }
+  .rec-list { list-style: none; }
+  .rec-list li { font-size: 0.82rem; line-height: 1.6; padding: 0.3rem 0 0.3rem 1rem; border-bottom: 1px solid var(--border); position: relative; }
+  .rec-list li:last-child { border-bottom: none; }
+  .rec-list li::before { content: "→"; position: absolute; left: 0; color: var(--muted); }
+  .no-results { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.88rem; }
+  .no-results .big { font-size: 2.5rem; margin-bottom: 0.5rem; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ SETUP SCREEN ════════════════════ -->
+<section id="setup" class="active">
+  <div class="setup-box">
+    <div class="setup-logo">🧬</div>
+    <h1>Test de Temperamentos</h1>
+    <p class="subtitle">Descubre el temperamento de cada integrante de tu familia y aprende cómo relacionarse mejor.</p>
+
+    <div class="setup-members" id="setupMembers"></div>
+    <button class="add-member-btn" onclick="addMember()" id="addMemberBtn">+ Agregar integrante</button>
+    <button class="setup-start-btn" onclick="startApp()" id="startBtn" disabled>Comenzar →</button>
+    <p class="setup-note">Puedes agregar entre 1 y 8 integrantes. Los resultados se guardan en este navegador.</p>
+  </div>
+</section>
+
+<!-- ════════════════════ NAV (hidden until setup done) ════════════════════ -->
+<nav id="mainNav" style="display:none;">
+  <div class="nav-brand">🧬 Temperamentos</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('resumen')">Resumen</button>
+    <button class="nav-tab" onclick="showSection('test')">Test</button>
+    <button class="nav-tab" onclick="showSection('recomendaciones')">Recomendaciones</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:0.6rem;">
+    <span class="save-indicator" id="saveIndicator">💾 guardado</span>
+    <button class="nav-reset-btn" onclick="confirmReset()">↺ Nueva familia</button>
+  </div>
+</nav>
+
+<!-- ════════════════════ RESUMEN ════════════════════ -->
+<section id="resumen">
+  <div class="section-eyebrow">Teoría clásica</div>
+  <h1>Los cuatro temperamentos</h1>
+  <p class="lead">Una de las teorías de personalidad más antiguas, refinada durante siglos. Cada persona tiene un temperamento primario dominante y frecuentemente uno secundario que lo matiza.</p>
+
+  <div class="temp-grid">
+    <div class="temp-card san">
+      <div class="temp-icon">🔥</div>
+      <div class="temp-name">Sanguíneo</div>
+      <div class="temp-epithet">El Animador · Extrovertido · Optimista</div>
+      <p class="temp-desc">Vive el momento, irradia entusiasmo y conecta con todos naturalmente. Le encanta hablar, socializar y estar en el centro. Puede perder el foco fácilmente.</p>
+      <div class="trait-list"><span class="trait">Carismático</span><span class="trait">Espontáneo</span><span class="trait">Creativo</span><span class="trait">Emocional</span><span class="trait">Curioso</span></div>
+      <div class="strengths-weaknesses">
+        <div class="sw-block"><div class="sw-label">✦ Fortalezas</div>Inspira a otros, muy expresivo, llena de energía los ambientes, se adapta rápido.</div>
+        <div class="sw-block"><div class="sw-label">△ Retos</div>Impulsivo, desorganizado, promete más de lo que cumple, sensible a críticas.</div>
+      </div>
+    </div>
+    <div class="temp-card col">
+      <div class="temp-icon">⚡</div>
+      <div class="temp-name">Colérico</div>
+      <div class="temp-epithet">El Líder · Extrovertido · Activo</div>
+      <p class="temp-desc">Orientado a resultados, natural para liderar y decidir. Es directo, apasionado por los logros y no tolera la ineficiencia. Le gusta tener el control.</p>
+      <div class="trait-list"><span class="trait">Decidido</span><span class="trait">Ambicioso</span><span class="trait">Independiente</span><span class="trait">Práctico</span><span class="trait">Directo</span></div>
+      <div class="strengths-weaknesses">
+        <div class="sw-block"><div class="sw-label">✦ Fortalezas</div>Ejecuta rápido, motiva equipos, resuelve problemas, tiene visión clara.</div>
+        <div class="sw-block"><div class="sw-label">△ Retos</div>Puede ser dominante, impaciente, poco empático y difícil de corregir.</div>
+      </div>
+    </div>
+    <div class="temp-card mel">
+      <div class="temp-icon">🌊</div>
+      <div class="temp-name">Melancólico</div>
+      <div class="temp-epithet">El Analítico · Introvertido · Perfeccionista</div>
+      <p class="temp-desc">Profundo, reflexivo y detallista. Tiene altos estándares y una sensibilidad especial para el arte, la belleza y las relaciones. Necesita procesar antes de actuar.</p>
+      <div class="trait-list"><span class="trait">Perfeccionista</span><span class="trait">Empático</span><span class="trait">Fiel</span><span class="trait">Analítico</span><span class="trait">Creativo</span></div>
+      <div class="strengths-weaknesses">
+        <div class="sw-block"><div class="sw-label">✦ Fortalezas</div>Alta calidad en su trabajo, profundidad emocional, lealtad extraordinaria.</div>
+        <div class="sw-block"><div class="sw-label">△ Retos</div>Autoflagelación, pesimismo, dificultad para decidir, puede aislarse.</div>
+      </div>
+    </div>
+    <div class="temp-card fle">
+      <div class="temp-icon">🌿</div>
+      <div class="temp-name">Flemático</div>
+      <div class="temp-epithet">El Pacificador · Introvertido · Estable</div>
+      <p class="temp-desc">Calmado, confiable y diplomático. Es el pegamento de la familia: media conflictos, no pierde la cabeza y ofrece estabilidad emocional a todos. Evita el conflicto.</p>
+      <div class="trait-list"><span class="trait">Paciente</span><span class="trait">Diplomático</span><span class="trait">Confiable</span><span class="trait">Humilde</span><span class="trait">Observador</span></div>
+      <div class="strengths-weaknesses">
+        <div class="sw-block"><div class="sw-label">✦ Fortalezas</div>Armonía en el hogar, escucha activa, constancia, buen mediador.</div>
+        <div class="sw-block"><div class="sw-label">△ Retos</div>Postergación, dificultad para decir no, resistencia al cambio, indecisión.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <h2>¿Cómo se combinan?</h2>
+  <p class="lead">Casi nadie es "puro". El temperamento secundario matiza al primario — puede suavizarlo, enfocarlo o amplificarlo.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:1rem;">
+    <div class="intro-card"><div style="font-weight:500;font-size:0.84rem;margin-bottom:0.3rem;">🔥⚡ San–Col</div><p style="font-size:0.78rem;">Social y orientado a la acción. Arranca proyectos con entusiasmo pero necesita enfocarse.</p></div>
+    <div class="intro-card"><div style="font-weight:500;font-size:0.84rem;margin-bottom:0.3rem;">🌊🌿 Mel–Fle</div><p style="font-size:0.78rem;">Introvertido de alta calidad. Reflexivo, leal y profundo — decide lento pero bien.</p></div>
+    <div class="intro-card"><div style="font-weight:500;font-size:0.84rem;margin-bottom:0.3rem;">⚡🌊 Col–Mel</div><p style="font-size:0.78rem;">Líder analítico. Altísimos estándares, determinado — puede ser muy exigente con otros.</p></div>
+    <div class="intro-card"><div style="font-weight:500;font-size:0.84rem;margin-bottom:0.3rem;">🌿🔥 Fle–San</div><p style="font-size:0.78rem;">El más amable. Fácil de querer, sociable pero reservado, evita el conflicto a toda costa.</p></div>
+    <div class="intro-card"><div style="font-weight:500;font-size:0.84rem;margin-bottom:0.3rem;">🔥🌊 San–Mel</div><p style="font-size:0.78rem;">Creativo e intenso. Muy expresivo pero con momentos de profunda sensibilidad y autoexigencia.</p></div>
+    <div class="intro-card"><div style="font-weight:500;font-size:0.84rem;margin-bottom:0.3rem;">⚡🌿 Col–Fle</div><p style="font-size:0.78rem;">Líder contenido. Productivo y estable — más paciente que el colérico puro, pero puede acumular tensión.</p></div>
+  </div>
+  <div style="margin-top:2rem;text-align:center;">
+    <button class="btn btn-primary" onclick="showSection('test')">Hacer el test →</button>
+  </div>
+</section>
+
+<!-- ════════════════════ TEST ════════════════════ -->
+<section id="test">
+  <div class="section-eyebrow">Evaluación</div>
+  <h1>Test de temperamento</h1>
+  <p class="lead">Selecciona a quién vas a evaluar y responde 12 preguntas eligiendo la opción que más lo describe.</p>
+  <div class="person-selector" id="personSelector"></div>
+  <div id="testArea"></div>
+</section>
+
+<!-- ════════════════════ RECOMENDACIONES ════════════════════ -->
+<section id="recomendaciones">
+  <div class="section-eyebrow">Dinámica familiar</div>
+  <h1>Recomendaciones</h1>
+  <p class="lead">Basadas en los temperamentos completados. Los perfiles consideran temperamento primario y secundario.</p>
+  <div id="recsContent"></div>
+</section>
+
+<script>
+// ══════════ EMOJIS ══════════
+const EMOJIS = ['👩','👨','👧','👦','👶','👵','👴','🧑','👱','🧔','💁','🙋','🧒','🧕','👲','🧓'];
+const DEFAULT_MEMBERS = [
+  { id: 'p0', name: '', emoji: '👩' },
+  { id: 'p1', name: '', emoji: '👨' },
+];
+
+// ══════════ QUESTIONS ══════════
+const questions = [
+  { text: "En una reunión familiar o social, esta persona generalmente…", options: [
+    { text: "Toma la palabra, cuenta historias y busca que todos se diviertan", scores: {san:3,col:1,mel:0,fle:0} },
+    { text: "Toma el control, organiza y dirige qué hacer", scores: {san:0,col:3,mel:1,fle:0} },
+    { text: "Observa, escucha y disfruta desde un costado", scores: {san:0,col:0,mel:1,fle:3} },
+    { text: "Participa con profundidad en conversaciones uno a uno", scores: {san:0,col:0,mel:3,fle:1} },
+  ]},
+  { text: "Cuando surge un problema o conflicto en casa…", options: [
+    { text: "Lo habla enseguida, expresa sus emociones y busca reconciliarse rápido", scores: {san:3,col:0,mel:0,fle:1} },
+    { text: "Lo enfrenta directamente y quiere resolverlo ya", scores: {san:0,col:3,mel:0,fle:0} },
+    { text: "Prefiere ceder para mantener la paz y evitar la tensión", scores: {san:0,col:0,mel:0,fle:3} },
+    { text: "Se retira, lo procesa internamente y vuelve cuando está listo/a", scores: {san:0,col:0,mel:3,fle:1} },
+  ]},
+  { text: "A la hora de tomar decisiones, esta persona…", options: [
+    { text: "Decide rápido por intuición y ganas del momento", scores: {san:3,col:1,mel:0,fle:0} },
+    { text: "Decide rápido, con seguridad y sin necesitar la opinión de otros", scores: {san:0,col:3,mel:0,fle:0} },
+    { text: "Analiza mucho antes de decidir, le preocupa equivocarse", scores: {san:0,col:0,mel:3,fle:1} },
+    { text: "Tarda en decidir porque no quiere afectar a nadie", scores: {san:0,col:0,mel:1,fle:3} },
+  ]},
+  { text: "Su espacio personal tiende a ser…", options: [
+    { text: "Colorido, lleno de cosas — desordenado pero con vida", scores: {san:3,col:0,mel:0,fle:1} },
+    { text: "Funcional y organizado para trabajar y producir", scores: {san:0,col:3,mel:1,fle:0} },
+    { text: "Muy ordenado y arreglado con gusto estético", scores: {san:0,col:0,mel:3,fle:1} },
+    { text: "Simple, cómodo, sin muchos cambios", scores: {san:0,col:0,mel:1,fle:3} },
+  ]},
+  { text: "Cuando se equivoca o hace algo mal, esta persona…", options: [
+    { text: "Se ríe de sí misma, pide disculpas rápido y sigue adelante", scores: {san:3,col:0,mel:0,fle:1} },
+    { text: "Le cuesta admitirlo, pero cuando lo hace sigue sin culpa", scores: {san:0,col:3,mel:0,fle:0} },
+    { text: "Se lo toma muy en serio y puede quedarse pensando días", scores: {san:0,col:0,mel:3,fle:0} },
+    { text: "Lo reconoce tranquilamente y sigue con calma", scores: {san:0,col:0,mel:1,fle:3} },
+  ]},
+  { text: "En cuanto a la energía y el ritmo…", options: [
+    { text: "Tiene energía a ráfagas — se entusiasma mucho y luego baja", scores: {san:3,col:1,mel:0,fle:0} },
+    { text: "Es incansable, siempre con proyectos o metas en mente", scores: {san:0,col:3,mel:0,fle:0} },
+    { text: "Prefiere un ritmo constante y predecible, sin apuros", scores: {san:0,col:0,mel:1,fle:3} },
+    { text: "Trabaja mejor en silencio y de forma concentrada", scores: {san:0,col:0,mel:3,fle:1} },
+  ]},
+  { text: "¿Qué dice esta persona cuando está aburrida?", options: [
+    { text: "\"¡Hagamos algo! ¡Llamemos a alguien! ¡Salgamos!\"", scores: {san:3,col:1,mel:0,fle:0} },
+    { text: "\"Mejor aprovecho para avanzar con algo productivo\"", scores: {san:0,col:3,mel:1,fle:0} },
+    { text: "\"Me pongo a leer, escuchar música o pensar\"", scores: {san:0,col:0,mel:3,fle:1} },
+    { text: "\"Estoy bien así, no necesito nada especial\"", scores: {san:0,col:0,mel:0,fle:3} },
+  ]},
+  { text: "En el colegio / trabajo, esta persona es conocida por…", options: [
+    { text: "Ser sociable, animada, divertida y carismática", scores: {san:3,col:0,mel:0,fle:1} },
+    { text: "Ser líder, eficiente y orientada a resultados", scores: {san:0,col:3,mel:1,fle:0} },
+    { text: "Ser perfeccionista, detallista y muy comprometida", scores: {san:0,col:1,mel:3,fle:0} },
+    { text: "Ser confiable, tranquila y siempre disponible para ayudar", scores: {san:0,col:0,mel:0,fle:3} },
+  ]},
+  { text: "Cuando alguien le da una crítica o corrección…", options: [
+    { text: "Se entristece un momento, pero luego lo olvida y sigue", scores: {san:3,col:0,mel:0,fle:1} },
+    { text: "Puede ponerse a la defensiva o debatirlo", scores: {san:0,col:3,mel:0,fle:0} },
+    { text: "Lo toma muy a pecho y puede tardar tiempo en superarlo", scores: {san:0,col:0,mel:3,fle:0} },
+    { text: "Lo acepta con calma y sin drama", scores: {san:0,col:0,mel:1,fle:3} },
+  ]},
+  { text: "¿Cómo expresa afecto esta persona?", options: [
+    { text: "Con abrazos, palabras, sorpresas y mucha expresividad", scores: {san:3,col:0,mel:1,fle:0} },
+    { text: "Con actos, ayudando o resolviendo problemas a quien quiere", scores: {san:0,col:3,mel:0,fle:1} },
+    { text: "Con atención especial, detalles pensados y lealtad profunda", scores: {san:0,col:0,mel:3,fle:1} },
+    { text: "Con presencia constante, calma y disponibilidad", scores: {san:0,col:0,mel:1,fle:3} },
+  ]},
+  { text: "Frente a las reglas y estructura…", options: [
+    { text: "Las conoce pero las dobla cuando le da la gana", scores: {san:3,col:1,mel:0,fle:0} },
+    { text: "Las establece él/ella y le cuesta acatarlas si vienen de otro", scores: {san:0,col:3,mel:0,fle:0} },
+    { text: "Las respeta mucho, le incomoda lo imprevisto", scores: {san:0,col:1,mel:3,fle:1} },
+    { text: "Las acepta sin problema, no le gusta el conflicto", scores: {san:0,col:0,mel:0,fle:3} },
+  ]},
+  { text: "¿Qué lo/la motiva más profundamente?", options: [
+    { text: "La diversión, las personas y sentirse admirado/a", scores: {san:3,col:0,mel:0,fle:0} },
+    { text: "Los logros, el control y la eficiencia", scores: {san:0,col:3,mel:0,fle:0} },
+    { text: "Hacerlo perfecto y tener relaciones auténticas y profundas", scores: {san:0,col:0,mel:3,fle:0} },
+    { text: "La paz, la armonía y el bienestar de todos", scores: {san:0,col:0,mel:0,fle:3} },
+  ]},
+];
+
+const tempInfo = {
+  san: { name: "Sanguíneo",   icon: "🔥", color: "#C9614A" },
+  col: { name: "Colérico",    icon: "⚡", color: "#5B8C5A" },
+  mel: { name: "Melancólico", icon: "🌊", color: "#4A6C8C" },
+  fle: { name: "Flemático",   icon: "🌿", color: "#C49A2E" },
+};
+
+// ══════════ STATE ══════════
+const STORAGE_KEY = 'temperamentos_pub_v1';
+let state = {
+  members: [],   // [{id, name, emoji}, ...]
+  answers: {},   // {id: [optIdx, ...]}
+  results: {},   // {id: {primary, secondary, scores}}
+  currentPerson: null,
+  setupDone: false,
+};
+let selectedOption = null;
+let openEmojiPicker = null;
+
+// ══════════ PERSISTENCE ══════════
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      members: state.members,
+      answers: state.answers,
+      results: state.results,
+      setupDone: state.setupDone,
+    }));
+    const ind = document.getElementById('saveIndicator');
+    if (ind) { ind.classList.add('show'); setTimeout(() => ind.classList.remove('show'), 1800); }
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      state.members  = s.members  || [];
+      state.answers  = s.answers  || {};
+      state.results  = s.results  || {};
+      state.setupDone = s.setupDone || false;
+    }
+  } catch(e) {}
+}
+
+// ══════════ SETUP ══════════
+let memberRows = []; // working list before save
+
+function initSetupRows() {
+  // If loaded with existing members, pre-fill
+  memberRows = state.setupDone && state.members.length
+    ? state.members.map(m => ({ ...m }))
+    : DEFAULT_MEMBERS.map(m => ({ ...m }));
+  renderSetupRows();
+}
+
+function renderSetupRows() {
+  const container = document.getElementById('setupMembers');
+  container.innerHTML = '';
+  memberRows.forEach((m, idx) => {
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    row.innerHTML = `
+      <div class="member-emoji-picker" id="epicker-${idx}" onclick="toggleEmojiPicker(${idx}, event)">
+        <span id="eicon-${idx}">${m.emoji}</span>
+        <div class="emoji-dropdown" id="edrop-${idx}">
+          ${EMOJIS.map(e => `<div class="emoji-opt" onclick="pickEmoji(${idx},'${e}',event)">${e}</div>`).join('')}
+        </div>
+      </div>
+      <input class="member-input" type="text" placeholder="Nombre (ej: Mamá, Papá, Sofía…)"
+        value="${m.name}" maxlength="20"
+        oninput="updateMemberName(${idx}, this.value)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();focusNext(${idx});}">
+      ${memberRows.length > 1
+        ? `<button class="remove-member" onclick="removeMember(${idx})" title="Quitar">×</button>`
+        : '<div style="width:28px"></div>'}
+    `;
+    container.appendChild(row);
+  });
+  document.getElementById('addMemberBtn').style.display = memberRows.length >= 8 ? 'none' : 'block';
+  validateSetup();
+}
+
+function toggleEmojiPicker(idx, e) {
+  e.stopPropagation();
+  const drop = document.getElementById('edrop-' + idx);
+  const isOpen = drop.classList.contains('open');
+  // close all
+  document.querySelectorAll('.emoji-dropdown').forEach(d => d.classList.remove('open'));
+  openEmojiPicker = null;
+  if (!isOpen) { drop.classList.add('open'); openEmojiPicker = idx; }
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.emoji-dropdown').forEach(d => d.classList.remove('open'));
+  openEmojiPicker = null;
+});
+
+function pickEmoji(idx, emoji, e) {
+  e.stopPropagation();
+  memberRows[idx].emoji = emoji;
+  document.getElementById('eicon-' + idx).textContent = emoji;
+  document.getElementById('edrop-' + idx).classList.remove('open');
+}
+
+function updateMemberName(idx, val) {
+  memberRows[idx].name = val.trim();
+  validateSetup();
+}
+
+function focusNext(idx) {
+  const inputs = document.querySelectorAll('.member-input');
+  if (inputs[idx + 1]) inputs[idx + 1].focus();
+}
+
+function addMember() {
+  if (memberRows.length >= 8) return;
+  const newId = 'p' + Date.now();
+  const emoji = EMOJIS[memberRows.length % EMOJIS.length];
+  memberRows.push({ id: newId, name: '', emoji });
+  renderSetupRows();
+  // focus the new input
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.member-input');
+    inputs[inputs.length - 1]?.focus();
+  }, 50);
+}
+
+function removeMember(idx) {
+  memberRows.splice(idx, 1);
+  renderSetupRows();
+}
+
+function validateSetup() {
+  const valid = memberRows.some(m => m.name.length > 0);
+  document.getElementById('startBtn').disabled = !valid;
+}
+
+function startApp() {
+  // Commit members (filter empty names, assign stable IDs)
+  state.members = memberRows
+    .filter(m => m.name.trim().length > 0)
+    .map((m, i) => ({ id: m.id || 'p' + i, name: m.name.trim(), emoji: m.emoji }));
+
+  if (!state.members.length) return;
+
+  // Remove orphan answers/results
+  const ids = new Set(state.members.map(m => m.id));
+  Object.keys(state.answers).forEach(k => { if (!ids.has(k)) delete state.answers[k]; });
+  Object.keys(state.results).forEach(k => { if (!ids.has(k)) delete state.results[k]; });
+
+  state.setupDone = true;
+  state.currentPerson = state.members[0].id;
+  saveState();
+  launchApp();
+}
+
+function launchApp() {
+  const setup = document.getElementById('setup');
+  setup.classList.remove('active');
+  setup.style.display = 'none';
+  document.getElementById('mainNav').style.display = 'flex';
+  renderPersonSelector();
+  showSection('test');
+}
+
+function confirmReset() {
+  document.getElementById('resetModal').classList.add('open');
+}
+
+function closeResetModal() {
+  document.getElementById('resetModal').classList.remove('open');
+}
+
+function doReset() {
+  closeResetModal();
+  localStorage.removeItem(STORAGE_KEY);
+  state = { members: [], answers: {}, results: {}, currentPerson: null, setupDone: false };
+  selectedOption = null;
+  // Hide nav
+  document.getElementById('mainNav').style.display = 'none';
+  // Hide all content sections
+  ['resumen','test','recomendaciones'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
+  // Re-init and show setup
+  memberRows = [];
+  initSetupRows();
+  const setup = document.getElementById('setup');
+  setup.style.display = 'flex';
+  setup.style.alignItems = 'flex-start';
+  setup.style.justifyContent = 'center';
+  setup.style.padding = '3rem 1.5rem';
+  setup.style.minHeight = '100vh';
+  setup.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ══════════ PERSON SELECTOR ══════════
+function renderPersonSelector() {
+  const sel = document.getElementById('personSelector');
+  sel.innerHTML = state.members.map(m => `
+    <button class="person-btn${m.id === state.currentPerson ? ' active' : ''}${state.results[m.id] ? ' done' : ''}"
+      id="btn-${m.id}" onclick="selectPerson('${m.id}')">
+      ${m.emoji} ${m.name}<span class="done-dot"></span>
+    </button>
+  `).join('');
+}
+
+function selectPerson(id) {
+  state.currentPerson = id;
+  selectedOption = null;
+  renderPersonSelector();
+  renderTest();
+}
+
+// ══════════ TEST ══════════
+function renderTest() {
+  renderPersonSelector();
+  const p = state.currentPerson;
+  if (!p) return;
+  const member = state.members.find(m => m.id === p);
+  const answers = state.answers[p] || [];
+  const result = state.results[p];
+  const area = document.getElementById('testArea');
+
+  if (result) {
+    const prim = tempInfo[result.primary];
+    const sec = result.secondary ? tempInfo[result.secondary] : null;
+    const total = Object.values(result.scores).reduce((a,b)=>a+b,0);
+    area.innerHTML = `
+      <div class="test-complete">
+        <div class="emoji">${prim.icon}${sec ? sec.icon : ''}</div>
+        <h3>${member?.emoji || ''} ${member?.name || ''}: ${prim.name}${sec ? ' + ' + sec.name : ''}</h3>
+        <p style="color:var(--muted);font-size:0.8rem;margin-bottom:1rem;">Test completado · ${questions.length} preguntas respondidas</p>
+      </div>
+      <div class="score-breakdown">
+        ${Object.entries(result.scores).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+          <div class="score-row">
+            <span class="score-label">${tempInfo[k].icon} ${tempInfo[k].name}</span>
+            <div class="score-track"><div class="score-bar" style="width:${total?Math.round(v/total*100):0}%;background:${tempInfo[k].color}"></div></div>
+            <span class="score-val">${Math.round(v/total*100)}%</span>
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:0.6rem;margin-top:1rem;flex-wrap:wrap;">
+        <button class="btn btn-ghost" onclick="resetPerson('${p}')">↺ Rehacer test</button>
+        <button class="btn btn-primary" onclick="showSection('recomendaciones')">Ver recomendaciones →</button>
+      </div>`;
+    return;
+  }
+
+  const qIdx = answers.length;
+  if (qIdx >= questions.length) { computeResult(p); renderTest(); return; }
+  const q = questions[qIdx];
+  const progress = Math.round(qIdx / questions.length * 100);
+
+  area.innerHTML = `
+    <div class="question-counter">${member?.emoji || ''} ${member?.name || ''} · Pregunta ${qIdx+1} de ${questions.length}</div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+    <div class="question-text">${q.text}</div>
+    <div class="options">
+      ${q.options.map((o,i)=>`<button class="option-btn" onclick="selectOption(${i})">${o.text}</button>`).join('')}
+    </div>
+    <div class="test-nav">
+      <button class="btn btn-ghost" onclick="goBack()" ${qIdx===0?'disabled':''}>← Anterior</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled>Siguiente →</button>
+    </div>`;
+}
+
+function selectOption(idx) {
+  selectedOption = idx;
+  document.querySelectorAll('.option-btn').forEach((b,i) => b.classList.toggle('selected', i===idx));
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function goNext() {
+  if (selectedOption === null) return;
+  const p = state.currentPerson;
+  if (!state.answers[p]) state.answers[p] = [];
+  state.answers[p].push(selectedOption);
+  selectedOption = null;
+  if (state.answers[p].length >= questions.length) computeResult(p);
+  saveState();
+  renderTest();
+}
+
+function goBack() {
+  const p = state.currentPerson;
+  if (state.answers[p]?.length > 0) state.answers[p].pop();
+  selectedOption = null;
+  renderTest();
+}
+
+function computeResult(p) {
+  const answers = state.answers[p] || [];
+  const scores = { san:0, col:0, mel:0, fle:0 };
+  answers.forEach((optIdx, qIdx) => {
+    Object.entries(questions[qIdx].options[optIdx].scores).forEach(([k,v]) => scores[k] += v);
+  });
+  const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const primary = sorted[0][0];
+  const secondary = sorted[1][1] >= sorted[0][1]*0.45 ? sorted[1][0] : null;
+  state.results[p] = { primary, secondary, scores };
+  saveState();
+  renderRecs();
+}
+
+function resetPerson(p) {
+  delete state.answers[p];
+  delete state.results[p];
+  selectedOption = null;
+  saveState();
+  renderTest();
+  renderRecs();
+}
+
+// ══════════ INDIVIDUAL PROFILES ══════════
+const individualProfiles = {
+  san: {
+    _base: [
+      "El reconocimiento verbal es su combustible principal. No es vanidad — es una necesidad real: cuando se le aprecia en voz alta, da lo mejor de sí. Ignorarlo o no celebrar sus logros lo desinfla mucho más de lo que el sanguíneo mismo suele admitir.",
+      "Vive en el presente con una intensidad que puede ser contagiosa o agotadora dependiendo de quién lo rodea. Toma decisiones rápido, cambia de opinión con facilidad y puede prometer cosas con el mismo entusiasmo con el que luego las olvida — no por mala fe, sino porque en el momento lo sentía completamente real.",
+      "Su mayor don es crear conexión: entra a un cuarto y lo llena. Hace que la gente se sienta vista, divertida y bienvenida. Este talento social es genuino y valioso, pero puede llevarlo a priorizar el ambiente sobre la verdad — a veces dice lo que la gente quiere escuchar para no bajar la energía.",
+      "Para los demás: cuando el sanguíneo se compromete con algo, ayúdenlo con recordatorios y estructura sin hacerlo sentir controlado. Y cuando se equivoca, la crítica directa y breve funciona mejor que el sermón largo — pierde el hilo y se cierra.",
+      "Para crecer: aprender a distinguir entusiasmo genuino de impulsividad. La regla 'espera 24 horas antes de comprometerte con algo nuevo' puede cambiarle la vida.",
+    ],
+    col: [
+      "Esta combinación produce una persona difícil de ignorar: tiene el carisma y la energía del sanguíneo, pero también la determinación y el enfoque del colérico. Cuando encuentra algo que le importa de verdad, puede mover montañas.",
+      "El riesgo central es la impaciencia doble: quiere empezar todo ya (sanguíneo) y quiere resultados inmediatos (colérico). Esto puede llevar a comenzar proyectos con euforia y abandonarlos antes de terminarlos porque el camino le parece demasiado lento.",
+      "En relaciones tiende a ser muy directa con sus opiniones — a veces sin filtro — y puede herir sin darse cuenta. La misma energía que inspira también puede aplastar si no se calibra bien.",
+      "Para crecer: practicar el arte de terminar antes de empezar. Cada vez que aparezca una nueva idea brillante, preguntarse primero: '¿Qué de lo que ya comencé puedo cerrar esta semana?'",
+    ],
+    mel: [
+      "Esta es una de las combinaciones más ricas y contradictorias. Hacia afuera parece puro sanguíneo — risas, energía, presencia social — pero por dentro hay una profundidad melancólica que muy poca gente llega a ver. El humor puede ser genuino y también puede ser una armadura.",
+      "Cuando está bien, esta persona es creativa, expresiva y profunda a la vez: puede conectar emocionalmente de una forma que va mucho más allá de la superficie. Cuando está mal, usa la energía social para escapar de lo que siente, y termina agotada porque nunca procesó lo que necesitaba procesar.",
+      "Es especialmente sensible a la crítica — más de lo que aparenta. Una observación hecha sin cuidado puede quedarle dando vueltas durante días, aunque por fuera parezca que lo soltó en cinco minutos.",
+      "Para crecer: darse permiso de estar triste, callada o necesitada sin sentir que eso contradice quién es. La profundidad no le quita la luz — la hace más real.",
+    ],
+    fle: [
+      "Probablemente la persona más fácil de querer en cualquier grupo: tiene la calidez y el humor del sanguíneo sin la intensidad conflictiva del colérico ni la exigencia del melancólico. Es divertido/a, generoso/a y nunca hace sentir al otro incómodo.",
+      "El precio de esta combinación es que puede sacrificar sus propias necesidades casi sin notarlo, con tal de mantener el ambiente bien. Acepta planes que no quiere, tolera situaciones que le incomodan y dice que sí cuando quiere decir que no — todo mientras sigue sonriendo.",
+      "Con el tiempo, ese silencio acumulado puede producir una distancia sutil: no explota, pero se aleja emocionalmente de las personas con quienes siente que no puede ser honesto/a.",
+      "Para crecer: entender que decir 'no' o expresar una incomodidad no arruina el ambiente — a veces lo profundiza. Las relaciones que solo sobreviven cuando uno es siempre amable no son relaciones reales.",
+    ],
+  },
+  col: {
+    _base: [
+      "Necesita sentir que tiene voz y voto en las decisiones importantes. No es terquedad — es que su sentido de identidad está muy ligado a la autonomía. Cuando siente que le imponen algo sin consultarle, su primera reacción es resistencia, aunque la idea impuesta sea buena.",
+      "Expresa amor principalmente a través de actos: resuelve problemas, gestiona situaciones, protege, provee. Puede no decir 'te quiero' con frecuencia pero arregla lo que se rompe, aparece cuando hay una crisis y defiende a los suyos sin que nadie se lo pida. Quienes lo rodean necesitan aprender a leer ese lenguaje.",
+      "Su mayor fortaleza es la ejecución: decide rápido, actúa sin parálisis y arrastra a otros con su convicción. En momentos de caos o crisis, el colérico suele ser quien ordena el panorama y da dirección cuando todos los demás están paralizados.",
+      "Su mayor ciego punto es la empatía en tiempo real: puede tener razón y aun así herir porque no midió el cómo. La directness que él/ella ve como eficiencia, el otro la puede vivir como agresión o desconsideración.",
+      "Para crecer: practicar hacer una pausa antes de corregir o criticar. La pregunta '¿quiere que le resuelva esto o quiere que lo escuche?' puede evitar conflictos innecesarios y fortalecer la conexión emocional con quienes le importan.",
+    ],
+    san: [
+      "Cuando está en su mejor versión, esta persona es extraordinariamente carismática: lidera con energía, inspira con entusiasmo y hace que la gente quiera seguirla. Tiene la visión del colérico y el don de comunicarla del sanguíneo.",
+      "El riesgo es la inconsistencia: puede pasar de motivar a controlar, de inspirar a imponer, dependiendo de su estado emocional del día. Las personas cercanas pueden sentir que no saben con quién van a encontrarse.",
+      "También puede comprometerse con demasiadas cosas a la vez — el sanguíneo quiere empezar todo, el colérico quiere que todo salga bien — y terminar estresado/a porque la agenda no alcanza para tanta ambición.",
+      "Para crecer: desarrollar consistencia emocional. Cuando sienta que está en modo 'colérico puro' — exigente, tenso, poco tolerante — es el momento de activar conscientemente el lado sanguíneo: humor, ligereza, conexión.",
+    ],
+    mel: [
+      "Una de las combinaciones más potentes en términos de capacidad: tiene visión estratégica (colérico), pensamiento profundo (melancólico), capacidad de ejecución (colérico) y atención al detalle (melancólico). En el trabajo y en los proyectos, puede ser brillante.",
+      "El precio es que se vuelve muy exigente consigo mismo/a — y casi inevitablemente, también con los demás. Sus estándares son altos por naturaleza doble: quiere que sea rápido Y que sea perfecto, y pocas cosas en la vida cumplen ambos criterios al mismo tiempo.",
+      "Puede ser muy duro/a con las críticas, especialmente cuando siente que algo se hizo mal o a medias. No lo hace con mala intención — genuinamente no entiende por qué otros no ven lo que él/ella ve. Pero el efecto en quienes reciben esa crítica puede ser devastador.",
+      "Para crecer: aprender a separar excelencia de perfeccionismo. La excelencia impulsa; el perfeccionismo paraliza a los demás y agota al que lo exige. La pregunta útil es: '¿Este nivel de detalle agrega valor real, o solo satisface mi necesidad de control?'",
+    ],
+    fle: [
+      "Esta combinación produce un líder más calmado y sostenible que el colérico puro. Tiene iniciativa y capacidad de decisión, pero también paciencia para esperar el momento correcto y flexibilidad para adaptarse cuando las cosas no salen como planeó.",
+      "El peligro silencioso de esta combinación es la acumulación: el colérico siente molestia y el flemático prefiere no decirlo, así que lo guarda. Lo guarda otra vez. Y otra vez. Hasta que llega un momento en que explota de una forma desproporcionada al evento que lo desencadena — porque en realidad estaba cargando semanas o meses de cosas no dichas.",
+      "En el día a día, puede parecer tranquilo y controlado cuando por dentro está procesando mucho. Las personas cercanas rara vez lo notan a tiempo.",
+      "Para crecer: desarrollar el hábito de nombrar las molestias pequeñas cuando son pequeñas. 'Eso me incomodó un poco' dicho en el momento es infinitamente más sano que el silencio sostenido que termina en explosión.",
+    ],
+  },
+  mel: {
+    _base: [
+      "El melancólico necesita tiempo para procesar — cambios, conflictos, decisiones, incluso buenas noticias. Darle ese tiempo no es sobreprotegerlo: es respetar cómo funciona su mente. Presionarlo a reaccionar rápido produce respuestas que no lo representan y resentimiento posterior.",
+      "Tiene los estándares más altos de los cuatro temperamentos, y eso aplica a todo: su trabajo, sus relaciones, su entorno, y a sí mismo/a. Esta exigencia produce resultados de altísima calidad, pero también un nivel de autocrítica que puede ser cruel. Se dice a sí mismo/a cosas que no le diría a nadie más.",
+      "Es el temperamento más leal: cuando el melancólico elige a alguien — amigo, pareja, familia — lo hace para siempre. No da su confianza rápido, pero cuando la da, es total. La traición o el abandono lo afectan de una forma profunda y duradera.",
+      "Para los demás: no apresurarlo/a a decidir, no tomar su silencio como indiferencia, y no invalidar su tristeza o preocupación con frases como 'no es para tanto'. Para él/ella sí es para tanto, y necesita sentirse acompañado/a, no corregido/a.",
+      "Para crecer: aprender a distinguir entre reflexión útil (que lleva a una acción o conclusión) y rumia improductiva (que solo da vueltas en el mismo lugar). Una pregunta práctica: '¿Llevar más tiempo pensando en esto me va a llevar a algo nuevo, o solo me está desgastando?'",
+    ],
+    col: [
+      "Esta combinación tiene una capacidad de enfoque excepcional: cuando el melancólico-colérico decide que algo vale la pena, lo analiza con profundidad y luego lo ejecuta con determinación. Es difícil que se le escape algo importante.",
+      "El mayor riesgo es que puede quedar atrapado entre dos impulsos contradictorios: el melancólico quiere analizar más antes de decidir; el colérico quiere actuar ya. Esa tensión interna puede producir tanto parálisis (el análisis nunca termina) como decisiones apresuradas que luego lamenta.",
+      "También puede ser muy duro/a consigo mismo/a cuando comete errores: el colérico siente frustración por no haberlo hecho bien, y el melancólico lo procesa en profundidad. La combinación puede crear ciclos de autocrítica muy intensos.",
+      "Para crecer: establecer límites de tiempo al proceso de análisis. 'Voy a pensar en esto hasta el jueves, y el jueves decido' es más sano que seguir abriendo el mismo archivo mental indefinidamente.",
+    ],
+    san: [
+      "Esta combinación tiene momentos de magia: cuando está bien, puede ser al mismo tiempo profundo/a y brillante, reflexivo/a y divertido/a. Sorprende a la gente que solo lo conoce de un lado cuando aparece el otro.",
+      "En periodos difíciles, sin embargo, puede usar la energía social del sanguíneo para escapar del trabajo interior que necesita hacer el melancólico. Llena la agenda, se rodea de gente, está siempre ocupado/a — y nadie nota que por dentro está evitando algo.",
+      "También puede sentir que tiene que elegir: o ser el/la animado/a que todos esperan, o ser el/la profundo/a que realmente es. La integración de ambas partes — entender que la profundidad no le quita la luz y que la alegría no lo hace superficial — es su trabajo de vida más importante.",
+      "Para crecer: crear espacios regulares de soledad y silencio, no como castigo sino como mantenimiento. El melancólico necesita procesar; si el sanguíneo llena todos los espacios con estímulos externos, la parte profunda se va acumulando sin salida.",
+    ],
+    fle: [
+      "El melancólico-flemático es probablemente el introvertido más introvertido de todas las combinaciones. Necesita enormes dosis de silencio y soledad para funcionar bien, y puede pasar días enteros en su mundo interior sin sentir que le falta nada.",
+      "Para las personas cercanas, esto puede ser desconcertante: el melancólico-flemático puede estar perfectamente bien mientras parece completamente ausente. Aprende a comunicar su estado interno — aunque sea con una frase corta — evita mucho malentendido.",
+      "Tiene una capacidad de observación extraordinaria: nota cosas que otros no ven, recuerda detalles de conversaciones que el otro ya olvidó, y procesa las dinámicas del grupo con una fineza que a veces resulta asombrosa.",
+      "Para crecer: practicar la comunicación proactiva. No esperar a que le pregunten tres veces cómo está. No asumir que los demás entienden su silencio. Una pequeña señal — 'estoy bien, solo pensando' — puede evitar que quienes lo quieren se alarmen innecesariamente.",
+    ],
+  },
+  fle: {
+    _base: [
+      "El flemático es el ancla emocional de cualquier grupo familiar. Su calma no es pasividad — es una estabilidad genuina que hace que todos a su alrededor se sientan seguros. En medio de una crisis, el flemático suele ser el único que puede pensar con claridad porque no entra en pánico.",
+      "Su mayor dificultad es la visibilidad de sus propias necesidades. Como raramente se queja, raramente pide, y raramente hace escenas, los demás suelen asumir que está bien aunque no lo esté. Aprende a pedir directamente lo que necesita — no porque deba cambiarse, sino porque los demás genuinamente no saben leer sus señales.",
+      "Evita el conflicto de una forma que puede parecer virtud pero a veces es un problema: prefiere ceder, callar, o cambiar de tema antes de sostener una posición incómoda. A largo plazo, eso puede traducirse en relaciones donde el flemático siempre cede y los demás nunca saben realmente lo que piensa.",
+      "Para los demás: no interpretar su calma como acuerdo, ni su silencio como aprobación. Preguntar directamente '¿tú qué preferirías?' y esperar la respuesta con paciencia — a veces necesita un momento para conectar con lo que realmente quiere.",
+      "Para crecer: practicar tener opiniones en voz alta, especialmente en las cosas pequeñas. '¿A dónde vamos a cenar?' parece trivial, pero es el músculo que necesita ejercitar para luego poder usarlo en conversaciones que realmente importan.",
+    ],
+    san: [
+      "Esta combinación produce una persona genuinamente encantadora: tiene la calidez y la calma del flemático, pero también una chispa social del sanguíneo que la hace más accesible y divertida que el flemático puro.",
+      "Puede disfrutar de los grupos y las reuniones, pero necesita recuperarse después — es extrovertido/a en la superficie pero introvertido/a en la base. Respetar ese ciclo es importante: si se sobre-socializan, se agotan; si se aíslan demasiado, se aburren.",
+      "Tiende a evitar el conflicto con una combinación de humor (sanguíneo) y evasión suave (flemático) que puede ser tan efectiva que los demás nunca llegan a saber cuándo algo realmente le molestó.",
+      "Para crecer: aprender que el humor puede ser una herramienta de conexión genuina o una forma de esquivar lo incómodo — y distinguir cuándo está usando uno u otro. El conflicto resuelto honestamente también puede ser divertido.",
+    ],
+    col: [
+      "Esta combinación tiene más iniciativa que el flemático puro y más paciencia que el colérico puro. En el mejor escenario, produce una persona que sabe cuándo actuar y cuándo esperar, que puede liderar sin aplastar.",
+      "El peligro es el silencio acumulado. El colérico siente molestia; el flemático decide no decirla. La molestia se repite. El flemático la vuelve a guardar. Eventualmente, una cosa relativamente menor provoca una reacción que desconcierta a todos — porque nadie sabía que había algo acumulado.",
+      "También puede caer en la pasividad resistente: no dice que no directamente, pero tampoco hace lo que se le pide. Es una forma de ejercer control sin entrar en conflicto abierto — y puede ser muy frustrante para quienes conviven con él/ella.",
+      "Para crecer: hacer el ejercicio de nombrar las molestias cuando son pequeñas y recientes, no cuando ya llevan semanas madurando. 'Eso me molestó un poco' dicho a tiempo cambia completamente la dinámica.",
+    ],
+    mel: [
+      "Esta combinación es profundamente sensible al ambiente emocional que la rodea. El flemático-melancólico absorbe el estrés, la tensión y la tristeza de los demás como una esponja — a veces sin darse cuenta. Puede llegar a casa perfectamente bien y salir de una conversación difícil completamente agotado/a, habiendo cargado con algo que no era suyo.",
+      "Tiende a cuidar mucho a los demás y muy poco a sí mismo/a. Escucha, acompaña, sostiene — pero cuando necesita lo mismo, no lo pide, sea porque no quiere cargar a nadie, sea porque genuinamente no sabe cómo.",
+      "Su silencio puede tener muchos significados distintos: puede estar bien, puede estar pensando, puede estar triste, puede estar agotado/a. Como no lo verbaliza espontáneamente, las personas cercanas necesitan aprender a preguntar — y el flemático-melancólico necesita aprender a responder honestamente.",
+      "Para crecer: identificar a una o dos personas de confianza con quienes pueda ser completamente honesto/a sobre su estado interior, y practicar hacerlo regularmente. No para resolver nada necesariamente — solo para no cargar solo/a.",
+    ],
+  },
+};
+
+function getIndividualProfile(primary, secondary) {
+  const base = individualProfiles[primary]?._base || [];
+  const combo = secondary && individualProfiles[primary]?.[secondary] ? individualProfiles[primary][secondary] : [];
+  let html = `<div class="rec-subsection">
+    <span class="rec-sub-label sub-${primary}">${tempInfo[primary].icon} Como ${tempInfo[primary].name}</span>
+    <ul class="rec-list">${base.map(t=>`<li>${t}</li>`).join('')}</ul>
+  </div>`;
+  if (combo.length) {
+    html += `<div class="rec-subsection">
+      <span class="rec-sub-label sub-${secondary}">${tempInfo[secondary].icon} Matiz ${tempInfo[secondary].name}</span>
+      <ul class="rec-list">${combo.map(t=>`<li>${t}</li>`).join('')}</ul>
+    </div>`;
+  }
+  return html;
+}
+
+// ══════════ PAIR RECS DB ══════════
+const recDatabase = {
+  "san-col": {
+    intro: "Son dos temperamentos extrovertidos y de acción rápida — cuando están alineados, pueden ser un dúo imparable. Cuando no lo están, pueden competir por protagonismo o chocar porque uno quiere entusiasmo y el otro quiere resultados.",
+    primaryTips: [
+      "El colérico tiende a ver al sanguíneo como disperso o poco serio; el sanguíneo tiende a ver al colérico como tenso o controlador. Ambas percepciones son parcialmente ciertas y parcialmente injustas. El trabajo es entender que procesan diferente — no que uno funciona mal.",
+      "El sanguíneo necesita sentirse libre y apreciado para dar lo mejor de sí. El colérico necesita sentir que hay avance concreto y que se respetan sus decisiones. Cuando ambas necesidades están cubiertas, la relación funciona con mucha energía positiva.",
+      "El conflicto más frecuente: el colérico corrige o critica de forma directa, el sanguíneo lo vive como rechazo emocional y se cierra o contraataca con humor defensivo. El colérico necesita aprender a dar feedback con más cuidado; el sanguíneo necesita aprender a no tomarse toda corrección como un ataque personal.",
+      "La división de roles ayuda mucho: que cada uno tenga áreas donde su temperamento lidera. El colérico tiende a querer controlar todo; el sanguíneo tiende a no querer que le impongan nada. Si no acuerdan quién decide qué, hay fricciones constantes.",
+      "El regalo mutuo: el sanguíneo puede sacar al colérico del modo 'máquina de producir' y recordarle que la vida también es disfrute. El colérico puede darle al sanguíneo el enfoque y la estructura que necesita para que sus ideas geniales lleguen a concretarse.",
+    ],
+    mods: {
+      "san+mel": ["Si el sanguíneo tiene secundario melancólico, habrá momentos en que de repente se vuelve reflexivo, quieto o sensible — lo cual puede desconcertar al colérico que estaba esperando energía. En esos momentos, el colérico necesita soltar el ritmo y acompañar sin empujar."],
+      "san+fle": ["Si el sanguíneo tiene secundario flemático, cederá más fácilmente ante la presión del colérico — lo cual puede parecer cómodo al principio pero genera resentimiento silencioso con el tiempo. El colérico debe cuidar no usar esa tendencia a ceder como un recurso fácil."],
+      "col+mel": ["Si el colérico tiene secundario melancólico, sus críticas serán más elaboradas, detalladas y difíciles de soltar. El sanguíneo necesita desarrollar más paciencia para escucharlas sin defenderse automáticamente, y el colérico-mel necesita aprender a decir las cosas una vez, no diez."],
+      "col+fle": ["Si el colérico tiene secundario flemático, tendrá más paciencia natural y acumulará las molestias en silencio hasta que ya no pueda más. El sanguíneo debe preguntar activamente cómo está la relación — no esperar a que el colérico explote para enterarse de que algo no funcionaba."],
+    }
+  },
+  "san-mel": {
+    intro: "Combinación complementaria y desafiante al mismo tiempo: el sanguíneo vive hacia afuera y hacia adelante; el melancólico vive hacia adentro y hacia la profundidad. Se pueden enriquecer enormemente o chocar por incomprensión.",
+    primaryTips: [
+      "El error más común del sanguíneo es interpretar el silencio del melancólico como frialdad, rechazo o aburrimiento. En realidad, el melancólico simplemente está procesando — puede estar pensando en algo que el sanguíneo dijo tres días atrás y recién ahora lo está integrando. Darle ese espacio sin tomárselo personal es fundamental.",
+      "El error más común del melancólico es esperar que el sanguíneo adivine lo que necesita. El sanguíneo no tiene esa antena — es genuinamente espontáneo y vive en el presente. Si el melancólico necesita quietud, comunicación profunda o más tiempo a solas, tiene que pedirlo en palabras, no en señales.",
+      "El sanguíneo puede volverse en exceso estimulante para el melancólico: mucho ruido, muchos planes, mucha gente, mucho cambio. El melancólico necesita momentos de calma predecible para recargarse. Si el sanguíneo entiende esto como una necesidad real y no como un rechazo, puede organizarse para dársela.",
+      "El melancólico puede volverse demasiado pesado emocionalmente para el sanguíneo si siempre lleva las conversaciones hacia lo difícil, lo profundo o lo que salió mal. El sanguíneo necesita también ligereza y celebración. El equilibrio entre profundidad y alegría es el trabajo de ambos.",
+      "El regalo mutuo: el sanguíneo puede sacar al melancólico de sus ciclos de rumia con humor, espontaneidad y recordándole que la vida tiene momentos buenos que vale la pena disfrutar sin analizarlos primero. El melancólico puede llevar al sanguíneo a conversaciones más auténticas, a relaciones más profundas y a un conocimiento de sí mismo que el sanguíneo solo rara vez busca.",
+    ],
+    mods: {
+      "san+col": ["Si el sanguíneo tiene secundario colérico, la combinación puede ser muy intensa para el melancólico: mucha energía, mucha decisión, poca paciencia para el procesamiento lento. El melancólico necesita señales claras y acordadas de que puede pedir tiempo sin que el otro se frustre."],
+      "san+fle": ["Si el sanguíneo tiene secundario flemático, tendrá una capacidad mayor de hacer silencio y acompañar sin necesitar que pase algo. Eso el melancólico lo aprecia profundamente — saber que puede estar callado junto a alguien sin que ese silencio genere tensión."],
+      "mel+col": ["Si el melancólico tiene secundario colérico, puede tener reacciones de frustración intensas cuando siente que no lo entienden o lo apuran. El sanguíneo necesita tomarse esas reacciones en serio en lugar de intentar aligerar la situación con humor — ese no es el momento para los chistes."],
+      "mel+fle": ["Si el melancólico tiene secundario flemático, va a expresar muy poco de lo que siente. El sanguíneo necesita desarrollar el hábito de preguntar activamente y con paciencia — no de forma superficial ('¿estás bien?') sino con preguntas reales que abran conversación."],
+    }
+  },
+  "san-fle": {
+    intro: "Uno de los dúos más cómodos: el flemático tiene la calma para aguantar el torbellino del sanguíneo sin drama, y el sanguíneo tiene la energía para sacar al flemático de la quietud cuando hace falta. Pero tiene sus riesgos.",
+    primaryTips: [
+      "La calma del flemático puede ser malinterpretada fácilmente por el sanguíneo como desinterés, indiferencia o que algo anda mal. El sanguíneo necesita aprender que el flemático no necesita demostrar que está bien todo el tiempo — simplemente está bien, en silencio, sin necesitar celebrarlo.",
+      "El sanguíneo suele dominar la conversación, los planes y la dinámica social sin darse cuenta. El flemático raramente lo interrumpe o lo corrige — no porque esté de acuerdo con todo, sino porque no le gusta el conflicto. Con el tiempo, el flemático puede sentirse invisible o ignorado sin que el sanguíneo tenga la menor idea.",
+      "El flemático necesita que le pregunten directamente lo que piensa, lo que quiere o cómo se siente — y cuando le pregunten, necesita un momento real para responder. El sanguíneo tiende a responder sus propias preguntas antes de darle tiempo al otro. Aprender a hacer preguntas y luego callarse a esperar es una habilidad clave.",
+      "La motivación cruzada funciona muy bien en este par: el sanguíneo puede sacar al flemático de la procrastinación con entusiasmo contagioso ('¡vamos, ya, ahora!'). El flemático puede calmar al sanguíneo cuando está desbordado y ayudarle a bajar el ritmo sin que lo viva como castigo.",
+      "El riesgo mayor a largo plazo: el flemático va acumulando pequeñas incomodidades no dichas — el plan que no quería, la decisión que no lo consultaron, la vez que se sintió poco importante — hasta que llega un punto de saturación que el sanguíneo no vio venir porque nunca hubo señales claras.",
+    ],
+    mods: {
+      "san+col": ["Si el sanguíneo tiene secundario colérico, puede resultar muy intenso para el flemático: no solo hay mucha energía sino también directness y expectativas de respuesta rápida. El flemático necesita sentirse con permiso de decir 'necesito un momento' sin que eso se interprete como rechazo."],
+      "san+mel": ["Si el sanguíneo tiene secundario melancólico, habrá momentos en que busque conversaciones más profundas o necesite procesar algo difícil. Paradójicamente, eso el flemático lo maneja muy bien — puede acompañar sin incomodarse con el silencio ni con la intensidad emocional."],
+      "fle+col": ["Si el flemático tiene secundario colérico, la acumulación silenciosa puede terminar en explosiones que desconciertan completamente al sanguíneo. El sanguíneo debe aprender a leer señales tempranas de tensión y preguntar antes de que lleguen al límite — el flemático-col no va a decirlo solo."],
+      "fle+mel": ["Si el flemático tiene secundario melancólico, puede estar cargando con mucho más de lo que aparenta. El sanguíneo debe revisar activamente y con regularidad cómo está — no de forma superficial, sino con disposición real a escuchar algo difícil si hace falta."],
+    }
+  },
+  "col-mel": {
+    intro: "Dos perfeccionistas con métodos opuestos: el colérico quiere hacerlo rápido y bien; el melancólico quiere hacerlo bien aunque tarde. Esta tensión puede producir resultados excepcionales o convertirse en una fuente constante de fricción.",
+    primaryTips: [
+      "El colérico y el melancólico comparten el estándar de calidad pero difieren radicalmente en el proceso. Para el colérico, la velocidad es parte de la calidad — las cosas que tardan demasiado pierden valor. Para el melancólico, la profundidad es parte de la calidad — las cosas que se hacen rápido no se hacen bien. Ninguno tiene razón absoluta; la negociación entre ambos criterios suele producir el mejor resultado.",
+      "El colérico tiene que aprender que presionar al melancólico no acelera el proceso — lo paraliza. El melancólico bajo presión se bloquea, analiza más, duda más. Si el colérico necesita que algo avance, la forma más eficiente es dar un contexto claro ('necesito esto para el jueves porque...') y luego dejar espacio real para trabajar.",
+      "El melancólico necesita aprender a comunicar sus incomodidades cuando son pequeñas, no cuando ya han fermentado durante semanas. Tiende a procesar internamente, dar vueltas, elaborar un argumento completo — y cuando finalmente lo dice, el colérico siente que viene un problema enorme. Si hubiera dicho algo antes, habría sido una conversación de cinco minutos.",
+      "El colérico critica de forma directa y espera que el otro lo supere rápido. El melancólico recibe la crítica, la procesa profundamente y puede seguir pensando en ella días después. El colérico necesita calibrar cómo da el feedback — no porque deba mentir, sino porque la entrega importa tanto como el contenido.",
+      "El regalo mutuo: son el equipo más potente posible cuando se respetan. El colérico aporta visión, decisión y ejecución. El melancólico aporta profundidad, detalle y calidad sostenida. Juntos pueden hacer cosas que ninguno haría solo — pero solo si aprenden a valorar genuinamente lo que el otro trae.",
+    ],
+    mods: {
+      "col+san": ["Si el colérico tiene secundario sanguíneo, puede ser impredecible para el melancólico: en un momento está carismático y cálido, en otro está exigente y crítico. El melancólico necesita predictibilidad para sentirse seguro — establecer un tono de conversación claro y consistente es fundamental en este par."],
+      "col+fle": ["Si el colérico tiene secundario flemático, tendrá más paciencia natural y menos tendencia a imponer el ritmo. Eso es un regalo enorme para el melancólico, que puede respirar y trabajar con más calma. Este es probablemente el colérico con quien el melancólico más fácilmente puede conectar."],
+      "mel+san": ["Si el melancólico tiene secundario sanguíneo, tendrá momentos de apertura, humor y expresividad que el colérico puede aprovechar activamente para conectar y aligerar la relación. No esperar solo a que lleguen esos momentos — buscarlos y celebrarlos cuando aparecen."],
+      "mel+fle": ["Si el melancólico tiene secundario flemático, será muy difícil de leer: no expresa lo que piensa, no pide lo que necesita y puede parecer indiferente cuando en realidad está procesando mucho. El colérico necesita resistir la tentación de asumir que el silencio significa acuerdo."],
+    }
+  },
+  "col-fle": {
+    intro: "El colérico aporta dirección y velocidad; el flemático aporta estabilidad y paciencia. Se complementan bien en papel — en la práctica, el colérico puede abrumar al flemático y el flemático puede frustrar al colérico.",
+    primaryTips: [
+      "El colérico naturalmente lidera, decide y avanza — y el flemático naturalmente deja que eso pase porque no le gusta el conflicto. Si no hay un esfuerzo consciente de ambos, el colérico termina tomando todas las decisiones y el flemático resentido de no haber sido consultado, aunque nunca lo diga.",
+      "El flemático necesita que el colérico baje la intensidad de sus preguntas y sus expectativas de respuesta. 'Entonces, ¿qué decides? ¿Sí o no?' produce parálisis en el flemático. 'Piénsalo y me dices' con un tiempo real y sin presión produce una respuesta mucho más honesta y de mejor calidad.",
+      "El silencio del flemático tiene múltiples significados: puede estar de acuerdo, puede estar pensando, puede estar incómodo pero no saber cómo decirlo, puede estar construyendo resentimiento. El colérico tiende a asumir que el silencio es acuerdo — ese es su error más costoso en esta relación.",
+      "El flemático, por su parte, necesita practicar dar su opinión sin que se la pidan tres veces. No esperar a que el colérico adivine, no decir 'lo que tú decidas' cuando en realidad tiene una preferencia. Ese patrón, aunque evita conflictos a corto plazo, le quita voz al flemático y pone toda la carga en el colérico.",
+      "El regalo mutuo: el colérico necesita al flemático para bajar el ritmo, pensar antes de actuar y no destruir relaciones en el camino hacia los objetivos. El flemático necesita al colérico para salir de la zona de confort, tomar decisiones que llevan años postergadas y avanzar cuando la inercia los tiene quietos.",
+    ],
+    mods: {
+      "col+mel": ["Si el colérico tiene secundario melancólico, sus críticas serán más elaboradas y persistentes — no solo señala el problema sino que lo analiza en detalle. Para el flemático, que evita la confrontación, eso puede resultar abrumador. Necesitan acordar que el feedback se da una vez, con claridad, y luego se da por cerrado."],
+      "col+san": ["Si el colérico tiene secundario sanguíneo, tendrá momentos de calidez y humor que alivian mucho la dinámica. El flemático puede conectar más fácilmente en esos momentos — y el colérico puede usarlos conscientemente para construir confianza y apertura antes de tener conversaciones difíciles."],
+      "fle+mel": ["Si el flemático tiene secundario melancólico, puede estar cargando con mucho más de lo que aparenta — sensibilidad profunda, insatisfacciones procesadas en silencio, cansancio acumulado. El colérico necesita crear espacios seguros, sin agenda, donde el flemático-mel pueda hablar sin ser juzgado ni apresurado."],
+      "fle+san": ["Si el flemático tiene secundario sanguíneo, habrá momentos de mayor apertura, humor y disposición al diálogo. El colérico debe aprovechar esos momentos para tener conversaciones importantes — no cuando el flemático está en modo retraído, sino cuando está más expansivo y accesible."],
+    }
+  },
+  "mel-fle": {
+    intro: "El dúo más tranquilo y el más silencioso. Ambos son introvertidos, reflexivos y profundamente no conflictivos — lo cual crea una armonía real, pero también un riesgo específico: que ninguno diga lo que realmente piensa hasta que ya sea demasiado.",
+    primaryTips: [
+      "La mayor amenaza de esta relación no es el conflicto abierto — es la acumulación silenciosa. Ninguno de los dos confronta fácilmente. El melancólico procesa en soledad; el flemático evita la tensión. El resultado es que pueden convivir con incomodidades no resueltas durante semanas o meses, cada uno asumiendo que el otro tampoco nota nada, hasta que la acumulación se hace insostenible.",
+      "Necesitan acordar explícitamente una práctica de comunicación regular: no esperar a que algo sea un problema grande para hablarlo. Una conversación breve y honesta cada semana — '¿Hay algo que no dijimos esta semana?' — puede prevenir meses de tensión silenciosa.",
+      "El melancólico tiende a los estándares altos y a la autocrítica. Si esos estándares se proyectan hacia el flemático — 'debería ser más así', 'no hace las cosas como deberían hacerse' — el flemático puede sentirse permanentemente insuficiente, aunque nunca lo diga. El melancólico necesita aprender a expresar sus expectativas en forma de conversación, no de juicio interno.",
+      "El flemático, por su parte, puede entrar en una pasividad tan profunda que el melancólico siente que lleva solo el peso de las decisiones importantes. El flemático aporta estabilidad y calma — eso es enorme — pero también necesita aparecer con iniciativa en las cosas que importan.",
+      "El regalo mutuo: tienen el potencial de construir una de las relaciones más profundas, leales y tranquilas posibles. Ninguno necesita drama, ninguno necesita ser el centro, y ambos valoran la autenticidad. Si aprenden a comunicar, tienen todos los elementos para una conexión extraordinaria.",
+    ],
+    mods: {
+      "mel+col": ["Si el melancólico tiene secundario colérico, puede tener arranques de frustración o exigencia que desconciertan completamente al flemático, que no los vio venir. El flemático necesita entender que esas explosiones son breves y no definen al melancólico — y el melancólico necesita dar señales previas antes de llegar al límite."],
+      "mel+san": ["Si el melancólico tiene secundario sanguíneo, habrá momentos de apertura, ligereza y expresividad que son una oportunidad de oro para el flemático. Esos momentos hacen que la relación respire — el flemático debe aprovecharlos para conectar, hablar de cosas importantes o simplemente disfrutar sin analizar."],
+      "fle+col": ["Si el flemático tiene secundario colérico, puede acumular molestias en silencio por mucho tiempo y eventualmente tener una reacción inesperadamente intensa. El melancólico, que también tiende a no preguntar, puede quedarse completamente sorprendido. Ambos necesitan desarrollar el hábito de nombrar las cosas pequeñas cuando son pequeñas."],
+      "fle+san": ["Si el flemático tiene secundario sanguíneo, trae una ligereza y sociabilidad ocasional que puede sacar al melancólico de sus ciclos de rumia o ensimismamiento. El melancólico debe recibir esa energía con apertura, no resistirla por preferir la profundidad — a veces una tarde ligera es exactamente lo que necesitaba."],
+    }
+  },
+};
+
+function getSameTypeTips(t) {
+  const tips = {
+    san: [
+      "Dos sanguíneos juntos crean un ambiente de energía, risas y entusiasmo contagioso. El problema es que esa energía puede ir en todas direcciones sin aterrizar en ninguna.",
+      "El riesgo central: nadie escucha porque todos quieren hablar. Las conversaciones importantes pueden quedarse en la superficie porque ambos prefieren lo divertido a lo profundo. Con el tiempo, pueden sentir que se conocen mucho pero que nunca se dijeron ciertas cosas.",
+      "Necesitan algo que los ancle: rutinas, compromisos escritos, o la práctica deliberada de sentarse a escuchar sin interrumpir. Acordar quién lidera qué área evita que dos impulsos simultáneos produzcan caos.",
+      "Fortaleza enorme: cuando hay celebración, la viven juntos con una intensidad que pocos pares logran. Y en los momentos difíciles, la capacidad de reírse juntos es un recurso real.",
+    ],
+    col: [
+      "Dos coléricos pueden ser un equipo extraordinariamente efectivo — si logran alinear sus metas. El problema es que ambos quieren liderar y ninguno cede fácilmente.",
+      "El conflicto puede escalar rápido porque los dos responden a la confrontación con más confrontación. La clave es la división de territorios: acordar quién decide qué, y respetar esa división incluso cuando el otro haría la cosa diferente.",
+      "El micro-management mutuo es el camino más seguro al conflicto permanente. Cuando cada uno respeta el dominio del otro, la relación fluye con una eficiencia que pocos logran.",
+      "Su fortaleza mayor es la lealtad en la acción: cuando hay una crisis o un objetivo común, los dos aparecen sin excusas. Si logran que su energía apunte en la misma dirección, pueden mover montañas.",
+    ],
+    mel: [
+      "Dos melancólicos pueden alcanzar una profundidad de conexión excepcional: se entienden sin explicar, valoran la lealtad de la misma forma y pueden tener conversaciones largas porque ambos disfrutan explorar en profundidad.",
+      "El riesgo es que se refuerzan mutuamente en lo difícil. Cuando uno entra en un ciclo de rumia o pesimismo, el otro tiene mucha empatía — pero puede acompañar en el espiral en lugar de ayudar a salir. Dos melancólicos juntos necesitan acordar que tienen permiso mutuo de interrumpir los ciclos y proponer algo concreto.",
+      "También pueden tener estándares tan altos el uno para el otro que ninguno siente que cumple. Practicar decirse en voz alta lo que valoran del otro es fundamental — el melancólico lo siente intensamente pero no siempre lo expresa.",
+      "Su fortaleza: relación de una lealtad y autenticidad que muy pocos logran. Cuando se tienen confianza total, ninguno necesita fingir ni simplificarse.",
+    ],
+    fle: [
+      "El hogar más tranquilo posible: nadie hace escenas, nadie impone, nadie crea drama. Hay una armonía real y genuina. El peligro es que esa armonía se vuelva inercia.",
+      "El riesgo central: nada cambia porque ninguno quiere generar tensión. Las conversaciones difíciles se postergan, las decisiones importantes se dejan para después, y las incomodidades se acumulan en silencio.",
+      "También puede pasar que ninguno tome la iniciativa en nada: ni en planes, ni en decisiones, ni en conversaciones importantes. Si ambos esperan que el otro proponga, el resultado es indecisión y la sensación de que la vida simplemente pasa sin ser elegida.",
+      "Para crecer juntos: acordar turnarse explícitamente el rol de 'quien propone'. No tienen que volverse coléricos — solo asegurarse de que alguien activa el avance cuando hace falta.",
+    ],
+  };
+  return tips[t] || [];
+}
+
+function getPairRecs(res1, res2) {
+  const k1 = res1.primary + '-' + res2.primary;
+  const k2 = res2.primary + '-' + res1.primary;
+  const rec = recDatabase[k1] || recDatabase[k2];
+  const sameType = res1.primary === res2.primary;
+  let html = '';
+  if (!rec) {
+    html += `<p class="intro-text">${sameType ? 'Comparten el mismo temperamento — se entienden naturalmente pero amplifican tanto lo bueno como los retos.' : 'Combinación complementaria.'}</p>`;
+    html += `<ul class="rec-list">${getSameTypeTips(res1.primary).map(t=>`<li>${t}</li>`).join('')}</ul>`;
+    return html;
+  }
+  html += `<p class="intro-text">${rec.intro}</p>`;
+  html += `<div class="rec-subsection"><span class="rec-sub-label sub-mix">Claves generales</span><ul class="rec-list">${rec.primaryTips.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
+  if (rec.mods) {
+    const combosToCheck = [];
+    if (res1.secondary) combosToCheck.push(res1.primary + '+' + res1.secondary);
+    if (res2.secondary) combosToCheck.push(res2.primary + '+' + res2.secondary);
+    const extraTips = [];
+    combosToCheck.forEach(combo => { if (rec.mods[combo]) extraTips.push(...rec.mods[combo]); });
+    if (extraTips.length > 0) {
+      const secLabel = [res1.secondary, res2.secondary].filter(Boolean).map(s => tempInfo[s]?.icon + ' ' + tempInfo[s]?.name).join(' + ');
+      html += `<div class="rec-subsection"><span class="rec-sub-label sub-mix">Con los secundarios (${secLabel})</span><ul class="rec-list">${extraTips.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
+    }
+  }
+  return html;
+}
+
+// ══════════ RECS RENDER ══════════
+function renderRecs() {
+  const content = document.getElementById('recsContent');
+  const completed = state.members.filter(m => state.results[m.id]).map(m => [m, state.results[m.id]]);
+  if (completed.length === 0) {
+    content.innerHTML = `<div class="no-results"><div class="big">🧩</div><p>Completa el test de al menos una persona para ver las recomendaciones.</p><button class="btn btn-primary" style="margin-top:1rem;" onclick="showSection('test')">Ir al test →</button></div>`;
+    return;
+  }
+  let html = '';
+  // Badges
+  html += '<div class="result-badges">';
+  completed.forEach(([m, res]) => {
+    const t = tempInfo[res.primary]; const s = res.secondary ? tempInfo[res.secondary] : null;
+    html += `<div class="result-badge ${res.primary}">${m.emoji}${t.icon}${s?s.icon:''} <strong>${m.name}</strong>: ${t.name}${s?' + '+s.name:''}</div>`;
+  });
+  html += '</div>';
+  // Individual profiles
+  html += `<h2 style="font-family:'Playfair Display',serif;margin-bottom:0.75rem;">Perfiles individuales</h2>`;
+  completed.forEach(([m, res]) => {
+    const prim = tempInfo[res.primary]; const sec = res.secondary ? tempInfo[res.secondary] : null;
+    html += `<div class="rec-card"><div class="rec-card-label">Perfil</div><h3>${m.emoji} ${prim.icon}${sec?sec.icon:''} ${m.name} — ${prim.name}${sec?' + '+sec.name:''}</h3>${getIndividualProfile(res.primary, res.secondary)}</div>`;
+  });
+  // Pairs
+  if (completed.length >= 2) {
+    html += `<div class="divider"></div><h2 style="font-family:'Playfair Display',serif;margin-bottom:0.75rem;">Dinámica entre pares</h2>`;
+    for (let i = 0; i < completed.length; i++) {
+      for (let j = i+1; j < completed.length; j++) {
+        const [m1, res1] = completed[i]; const [m2, res2] = completed[j];
+        html += `<div class="rec-card"><div class="rec-card-label">Relación</div><h3>${m1.emoji} ${m1.name} + ${m2.emoji} ${m2.name}</h3>${getPairRecs(res1, res2)}</div>`;
+      }
+    }
+  }
+  content.innerHTML = html;
+}
+
+// ══════════ NAV ══════════
+function showSection(id) {
+  ['resumen','test','recomendaciones'].forEach(sid => {
+    const el = document.getElementById(sid);
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const target = document.getElementById(id);
+  target.style.display = 'block';
+  target.classList.add('active');
+  const idx = ['resumen','test','recomendaciones'].indexOf(id);
+  if (idx >= 0) document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  if (id === 'recomendaciones') renderRecs();
+  if (id === 'test') renderTest();
+  window.scrollTo(0,0);
+}
+
+// ══════════ INIT ══════════
+loadState();
+if (state.setupDone && state.members.length > 0) {
+  state.currentPerson = state.members[0].id;
+  launchApp();
+} else {
+  initSetupRows();
+}
+</script>
+
+<!-- ── RESET MODAL ── -->
+<div class="modal-overlay" id="resetModal">
+  <div class="modal-box">
+    <div class="modal-icon">🔄</div>
+    <h3>¿Empezar de nuevo?</h3>
+    <p>Se borrarán los nombres y todos los resultados guardados en este navegador.</p>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeResetModal()">Cancelar</button>
+      <button class="modal-confirm" onclick="doReset()">Sí, empezar de nuevo</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
